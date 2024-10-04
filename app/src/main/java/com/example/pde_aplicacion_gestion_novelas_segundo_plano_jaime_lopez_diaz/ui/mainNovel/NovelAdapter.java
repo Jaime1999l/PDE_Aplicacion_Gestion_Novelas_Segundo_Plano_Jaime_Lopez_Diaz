@@ -1,6 +1,7 @@
 package com.example.pde_aplicacion_gestion_novelas_segundo_plano_jaime_lopez_diaz.ui.mainNovel;
 
-import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,16 +9,23 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.pde_aplicacion_gestion_novelas_segundo_plano_jaime_lopez_diaz.R;
+import com.example.pde_aplicacion_gestion_novelas_segundo_plano_jaime_lopez_diaz.activity.ReviewActivity;
 import com.example.pde_aplicacion_gestion_novelas_segundo_plano_jaime_lopez_diaz.domain.Novel;
-import java.util.ArrayList;
+
 import java.util.List;
 
 public class NovelAdapter extends RecyclerView.Adapter<NovelAdapter.NovelHolder> {
-    private List<Novel> novels = new ArrayList<>();
-    private OnItemClickListener listener;
+
+    private List<Novel> novelList;
+
+    public NovelAdapter(List<Novel> novels) {
+        this.novelList = novels;
+    }
 
     @NonNull
     @Override
@@ -29,7 +37,7 @@ public class NovelAdapter extends RecyclerView.Adapter<NovelAdapter.NovelHolder>
 
     @Override
     public void onBindViewHolder(@NonNull NovelHolder holder, int position) {
-        Novel currentNovel = novels.get(position);
+        Novel currentNovel = novelList.get(position);
         holder.textViewTitle.setText(currentNovel.getTitle());
         holder.textViewAuthor.setText(currentNovel.getAuthor());
 
@@ -40,87 +48,36 @@ public class NovelAdapter extends RecyclerView.Adapter<NovelAdapter.NovelHolder>
             holder.imageViewCover.setVisibility(View.GONE);
         }
 
-        holder.imageFavorite.setImageResource(
-                currentNovel.isFavorite() ? R.drawable.ic_baseline_favorite_24 : R.drawable.ic_baseline_favorite_border_24
-        );
+        holder.buttonFavorite.setOnClickListener(v -> {
+            currentNovel.setFavorite(!currentNovel.isFavorite());
+        });
+
+        holder.buttonReview.setOnClickListener(v -> {
+            Intent intent = new Intent(holder.itemView.getContext(), ReviewActivity.class);
+            intent.putExtra("EXTRA_NOVEL_ID", currentNovel.getId());
+            holder.itemView.getContext().startActivity(intent);
+        });
     }
 
     @Override
     public int getItemCount() {
-        return novels.size();
+        return novelList.size();
     }
 
-    @SuppressLint("NotifyDataSetChanged")
-    public void setNovels(List<Novel> novels) {
-        this.novels = novels;
-        notifyDataSetChanged();
-    }
+    public class NovelHolder extends RecyclerView.ViewHolder {
+        private TextView textViewTitle;
+        private TextView textViewAuthor;
+        private ImageView imageViewCover;
+        private Button buttonFavorite;
+        private Button buttonReview;
 
-    class NovelHolder extends RecyclerView.ViewHolder {
-        private final TextView textViewTitle;
-        private final TextView textViewAuthor;
-        private final ImageView imageViewCover; // Nueva ImageView para la portada
-        private final ImageView imageFavorite;
-
-        public NovelHolder(View itemView) {
+        public NovelHolder(@NonNull View itemView) {
             super(itemView);
             textViewTitle = itemView.findViewById(R.id.text_view_title);
             textViewAuthor = itemView.findViewById(R.id.text_view_author);
-            imageViewCover = itemView.findViewById(R.id.image_view_cover); // Referencia al ImageView
-            imageFavorite = itemView.findViewById(R.id.image_favorite);
-            Button buttonDelete = itemView.findViewById(R.id.button_delete);
-            Button buttonReview = itemView.findViewById(R.id.button_review);
-
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int position = getAdapterPosition();
-                    if (listener != null && position != RecyclerView.NO_POSITION) {
-                        listener.onItemClick(novels.get(position));
-                    }
-                }
-            });
-
-            imageFavorite.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int position = getAdapterPosition();
-                    if (listener != null && position != RecyclerView.NO_POSITION) {
-                        listener.onFavoriteClick(novels.get(position));
-                    }
-                }
-            });
-
-            buttonDelete.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int position = getAdapterPosition();
-                    if (listener != null && position != RecyclerView.NO_POSITION) {
-                        listener.onDeleteClick(novels.get(position));
-                    }
-                }
-            });
-
-            buttonReview.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int position = getAdapterPosition();
-                    if (listener != null && position != RecyclerView.NO_POSITION) {
-                        listener.onReviewClick(novels.get(position));
-                    }
-                }
-            });
+            imageViewCover = itemView.findViewById(R.id.image_view_cover);
+            buttonFavorite = itemView.findViewById(R.id.button_favorite);
+            buttonReview = itemView.findViewById(R.id.button_review);
         }
-    }
-
-    public interface OnItemClickListener {
-        void onItemClick(Novel novel);
-        void onFavoriteClick(Novel novel);
-        void onDeleteClick(Novel novel);
-        void onReviewClick(Novel novel);
-    }
-
-    public void setOnItemClickListener(OnItemClickListener listener) {
-        this.listener = listener;
     }
 }

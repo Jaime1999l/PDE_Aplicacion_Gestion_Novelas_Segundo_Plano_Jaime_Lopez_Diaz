@@ -1,46 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="4dp">
+    android:orientation="horizontal"
+    android:padding="8dp">
 
+    <!-- Imagen de la portada de la novela -->
+    <ImageView
+        android:id="@+id/image_view_cover"
+        android:layout_width="80dp"
+        android:layout_height="120dp"
+        android:scaleType="centerCrop"
+        android:layout_marginEnd="8dp"
+        android:contentDescription="Portada de la novela"/>
+
+    <!-- Texto de la novela: título y autor -->
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_weight="1"
+        android:orientation="vertical">
 
+        <!-- Título de la novela -->
         <TextView
             android:id="@+id/text_view_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/______t_tulo_de_la_novela"
-            android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="@color/black" />
+            android:textSize="16sp"
+            android:text="Título de la novela"/>
 
+        <!-- Autor de la novela -->
         <TextView
             android:id="@+id/text_view_author"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Autor"
-            android:textSize="16sp"
-            android:textColor="@color/teal_700"
-            android:layout_marginTop="4dp" />
-
-        <ImageView
-            android:id="@+id/image_favorite"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="end"
-            android:layout_marginTop="8dp"
-            android:src="@drawable/ic_baseline_favorite_border_24"
-            android:contentDescription="@string/favorite_updated" />
+            android:layout_marginTop="4dp"
+            android:text="Autor de la novela"/>
 
     </LinearLayout>
-</androidx.cardview.widget.CardView>
 
+    <!-- Botón de favorito (corazón) -->
+    <ImageView
+        android:id="@+id/image_favorite"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:padding="8dp"
+        android:layout_gravity="center"
+        android:src="@drawable/ic_favorite"
+        android:contentDescription="Botón de favorito"/>
+</LinearLayout>

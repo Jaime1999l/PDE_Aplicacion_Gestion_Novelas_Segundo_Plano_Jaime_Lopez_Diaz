@@ -13,19 +13,20 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
 
 import com.example.pde_aplicacion_gestion_novelas_segundo_plano_jaime_lopez_diaz.R;
 import com.example.pde_aplicacion_gestion_novelas_segundo_plano_jaime_lopez_diaz.domain.Novel;
-import com.example.pde_aplicacion_gestion_novelas_segundo_plano_jaime_lopez_diaz.ui.addeditnovel.AddEditNovelViewModel;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.UUID;
 
 public class AddEditNovelActivity extends AppCompatActivity {
 
     private EditText editTextTitle, editTextAuthor, editTextYear, editTextSynopsis;
     private ImageView imageViewCover;
-    private AddEditNovelViewModel novelViewModel;
     private Uri selectedImageUri;
+    private FirebaseFirestore db;
+    private String novelId;
 
     private final ActivityResultLauncher<Intent> galleryLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -42,60 +43,24 @@ public class AddEditNovelActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_edit_novel);
 
+        db = FirebaseFirestore.getInstance();
+
         editTextTitle = findViewById(R.id.edit_text_title);
         editTextAuthor = findViewById(R.id.edit_text_author);
         editTextYear = findViewById(R.id.edit_text_year);
         editTextSynopsis = findViewById(R.id.edit_text_synopsis);
+        imageViewCover = findViewById(R.id.image_view_cover);
         Button buttonSave = findViewById(R.id.button_save);
         Button buttonSelectImage = findViewById(R.id.button_select_image);
-        imageViewCover = findViewById(R.id.image_view_cover);
 
-        // Verifica que ViewModel esté correctamente inicializado
-        try {
-            novelViewModel = new ViewModelProvider(this).get(AddEditNovelViewModel.class);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Error al inicializar el ViewModel: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            return;
+        if (getIntent().hasExtra("EXTRA_ID")) {
+            novelId = String.valueOf(getIntent().getIntExtra("EXTRA_ID", -1));
+            loadNovelDetails(Integer.parseInt(novelId));
         }
 
-        // Verifica que los extras se reciban correctamente
-        final Bundle extras = getIntent().getExtras();
-        if (extras != null && extras.containsKey("EXTRA_ID")) {
-            setTitle("Editar Novela");
-            int novelId = extras.getInt("EXTRA_ID");
-            novelViewModel.getNovelById(novelId).observe(this, new Observer<Novel>() {
-                @Override
-                public void onChanged(Novel novel) {
-                    if (novel != null) {
-                        editTextTitle.setText(novel.getTitle());
-                        editTextAuthor.setText(novel.getAuthor());
-                        editTextYear.setText(String.valueOf(novel.getYear()));
-                        editTextSynopsis.setText(novel.getSynopsis());
-                        if (novel.getImageUri() != null && !novel.getImageUri().isEmpty()) {
-                            selectedImageUri = Uri.parse(novel.getImageUri());
-                            imageViewCover.setImageURI(selectedImageUri);
-                        }
-                    }
-                }
-            });
-        } else {
-            setTitle("Agregar Novela");
-        }
+        buttonSelectImage.setOnClickListener(v -> openGallery());
 
-        buttonSelectImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                openGallery();
-            }
-        });
-
-        buttonSave.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                saveNovel();
-            }
-        });
+        buttonSave.setOnClickListener(v -> saveNovel());
     }
 
     private void openGallery() {
@@ -115,24 +80,49 @@ public class AddEditNovelActivity extends AppCompatActivity {
         }
 
         int year = Integer.parseInt(yearString);
-        Novel novel = new Novel(title, author, year, synopsis, selectedImageUri != null ? selectedImageUri.toString() : "");
+        String imageUri = selectedImageUri != null ? selectedImageUri.toString() : "";
 
-        try {
-            if (getIntent().hasExtra("EXTRA_ID")) {
-                novel.setId(getIntent().getIntExtra("EXTRA_ID", -1));
-                novelViewModel.saveNovel(novel);
-                Toast.makeText(this, "Novela actualizada", Toast.LENGTH_SHORT).show();
-            } else {
-                novelViewModel.saveNovel(novel);
-                Toast.makeText(this, "Novela agregada", Toast.LENGTH_SHORT).show();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Error al guardar la novela: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            return;
+        Novel novel = new Novel(title, author, year, synopsis, imageUri);
+
+        if (novelId != null) {
+            novel.setId(novelId);
+            db.collection("novelas").document(novelId).set(novel)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(AddEditNovelActivity.this, "Novela actualizada", Toast.LENGTH_SHORT).show();
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(AddEditNovelActivity.this, "Error al actualizar la novela", Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            String randomId = UUID.randomUUID().toString();
+            novel.setId(randomId);
+            db.collection("novelas").document(randomId).set(novel)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(AddEditNovelActivity.this, "Novela agregada", Toast.LENGTH_SHORT).show();
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(AddEditNovelActivity.this, "Error al agregar la novela", Toast.LENGTH_SHORT).show();
+                    });
         }
+    }
 
-        finish();
+    private void loadNovelDetails(int novelId) {
+        db.collection("novelas").document(String.valueOf(novelId)).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    Novel novel = documentSnapshot.toObject(Novel.class);
+                    if (novel != null) {
+                        editTextTitle.setText(novel.getTitle());
+                        editTextAuthor.setText(novel.getAuthor());
+                        editTextYear.setText(String.valueOf(novel.getYear()));
+                        editTextSynopsis.setText(novel.getSynopsis());
+                        if (!TextUtils.isEmpty(novel.getImageUri())) {
+                            selectedImageUri = Uri.parse(novel.getImageUri());
+                            imageViewCover.setImageURI(selectedImageUri);
+                        }
+                    }
+                });
     }
 }
 

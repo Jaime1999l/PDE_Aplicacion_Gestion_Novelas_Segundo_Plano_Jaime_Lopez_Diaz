@@ -1,87 +1,89 @@
 package com.example.pde_aplicacion_gestion_novelas_segundo_plano_jaime_lopez_diaz.activity;
 
+import android.annotation.SuppressLint;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
 
 import com.example.pde_aplicacion_gestion_novelas_segundo_plano_jaime_lopez_diaz.R;
+import com.example.pde_aplicacion_gestion_novelas_segundo_plano_jaime_lopez_diaz.domain.Novel;
 import com.example.pde_aplicacion_gestion_novelas_segundo_plano_jaime_lopez_diaz.domain.Review;
-import com.example.pde_aplicacion_gestion_novelas_segundo_plano_jaime_lopez_diaz.ui.review.ReviewAdapter;
+import com.example.pde_aplicacion_gestion_novelas_segundo_plano_jaime_lopez_diaz.ui.review.ReviewViewModel;
 
 import java.util.List;
 
 public class ReviewActivity extends AppCompatActivity {
     private ReviewViewModel reviewViewModel;
-    private ReviewAdapter reviewAdapter;
-    private EditText editTextReviewer, editTextComment, editTextRating;
-    private int novelId;
+    private LinearLayout reviewsLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_review);
 
-        editTextReviewer = findViewById(R.id.edit_text_reviewer);
-        editTextComment = findViewById(R.id.edit_text_comment);
-        editTextRating = findViewById(R.id.edit_text_rating);
-        Button buttonAddReview = findViewById(R.id.button_add_review);
-        RecyclerView recyclerView = findViewById(R.id.recycler_view_reviews);
-
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setHasFixedSize(true);
-        reviewAdapter = new ReviewAdapter();
-        recyclerView.setAdapter(reviewAdapter);
-
+        reviewsLayout = findViewById(R.id.reviews_layout);
         reviewViewModel = new ViewModelProvider(this).get(ReviewViewModel.class);
 
-        if (getIntent().hasExtra("EXTRA_NOVEL_ID")) {
-            novelId = getIntent().getIntExtra("EXTRA_NOVEL_ID", -1);
-        }
+        // Obtener todas las reseñas
+        loadAllReviews();
+    }
 
-        reviewViewModel.getReviewsForNovel(novelId).observe(this, new Observer<List<Review>>() {
+    private void loadAllReviews() {
+        reviewViewModel.getAllReviews().observe(this, new Observer<List<Review>>() {
             @Override
             public void onChanged(List<Review> reviews) {
-                reviewAdapter.setReviews(reviews);
-            }
-        });
-
-        buttonAddReview.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                addReview();
+                displayReviews(reviews);
             }
         });
     }
 
-    private void addReview() {
-        String reviewer = editTextReviewer.getText().toString().trim();
-        String comment = editTextComment.getText().toString().trim();
-        String ratingString = editTextRating.getText().toString().trim();
+    @SuppressLint("SetTextI18n")
+    private void displayReviews(List<Review> reviews) {
+        reviewsLayout.removeAllViews();
+        for (Review review : reviews) {
+            TextView reviewView = new TextView(this);
+            reviewView.setText("Usuario: " + review.getReviewer() + "\n" +
+                    "Comentario: " + review.getComment() + "\n" +
+                    "Puntuación: " + review.getRating() + "\n" +
+                    "Nombre de la novela: " + review.getNovelName());
+            reviewView.setPadding(16, 16, 16, 16);
 
-        if (reviewer.isEmpty() || comment.isEmpty() || ratingString.isEmpty()) {
-            Toast.makeText(this, "Complete todos los campos para continuar...", Toast.LENGTH_SHORT).show();
-            return;
+            // Botón para ver más detalles de la novela
+            Button viewNovelButton = new Button(this);
+            viewNovelButton.setText("Ver Novela");
+            viewNovelButton.setOnClickListener(v -> loadNovelDetails(review.getNovelId())); // Cargar detalles de la novela
+
+            reviewsLayout.addView(reviewView);
+            reviewsLayout.addView(viewNovelButton);
         }
 
-        int rating = Integer.parseInt(ratingString);
-
-        Review review = new Review(novelId, reviewer, comment, rating);
-        reviewViewModel.addReview(review);
-        Toast.makeText(this, "Reseña añadida", Toast.LENGTH_SHORT).show();
-        clearFields();
+        if (reviews.isEmpty()) {
+            TextView noReviewsView = new TextView(this);
+            noReviewsView.setText("No hay reseñas disponibles.");
+            noReviewsView.setPadding(16, 16, 16, 16);
+            reviewsLayout.addView(noReviewsView);
+        }
     }
 
-    private void clearFields() {
-        editTextReviewer.setText("");
-        editTextComment.setText("");
-        editTextRating.setText("");
+    private void loadNovelDetails(String novelId) {
+        reviewViewModel.getNovelById(novelId).observe(this, new Observer<Novel>() {
+            @Override
+            public void onChanged(Novel novel) {
+                if (novel != null) {
+                    showNovelDetails(novel);
+                }
+            }
+        });
+    }
+
+    private void showNovelDetails(Novel novel) {
+        Toast.makeText(this, "Título: " + novel.getTitle() + "\nAutor: " + novel.getAuthor(), Toast.LENGTH_LONG).show();
     }
 }
+

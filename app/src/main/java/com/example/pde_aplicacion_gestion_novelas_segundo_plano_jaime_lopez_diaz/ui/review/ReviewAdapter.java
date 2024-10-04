@@ -1,12 +1,13 @@
 package com.example.pde_aplicacion_gestion_novelas_segundo_plano_jaime_lopez_diaz.ui.review;
 
-import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.pde_aplicacion_gestion_novelas_segundo_plano_jaime_lopez_diaz.R;
 import com.example.pde_aplicacion_gestion_novelas_segundo_plano_jaime_lopez_diaz.domain.Review;
 
@@ -24,7 +25,6 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewHold
         return new ReviewHolder(itemView);
     }
 
-    @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull ReviewHolder holder, int position) {
         Review currentReview = reviews.get(position);
@@ -56,4 +56,3 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewHold
         }
     }
 }
-

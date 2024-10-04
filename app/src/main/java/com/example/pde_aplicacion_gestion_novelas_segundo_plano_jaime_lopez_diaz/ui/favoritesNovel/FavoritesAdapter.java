@@ -5,10 +5,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.pde_aplicacion_gestion_novelas_segundo_plano_jaime_lopez_diaz.R;
 import com.example.pde_aplicacion_gestion_novelas_segundo_plano_jaime_lopez_diaz.domain.Novel;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,4 +59,3 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.Nove
         }
     }
 }
-
