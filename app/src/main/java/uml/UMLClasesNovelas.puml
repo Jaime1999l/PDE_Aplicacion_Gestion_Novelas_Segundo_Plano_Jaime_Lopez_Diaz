@@ -1,185 +1,137 @@
 @startuml
-skinparam classAttributeIconSize 0
+package com.example.pde_aplicacion_gestion_novelas_segundo_plano_jaime_lopez_diaz {
+    class PantallaPrincipalActivity {
+        - DrawerLayout drawerLayout
+        - FirebaseFirestore db
+        - LinearLayout novelsLayout
+        - List<Novel> novelList
+        - ExecutorService executorService
+        + onCreate(Bundle): void
+        - openDrawer(): void
+        - setupNavigation(): void
+        - loadNovels(): void
+        - updateNovelList(List<Novel>): void
+        - startPolling(): void
+        + onDestroy(): void
+    }
 
-class Novel {
-    +int id
-    +String title
-    +String author
-    +int year
-    +String synopsis
-    +boolean favorite
-    +String imageUri
-    +void setId(int id)
-    +int getId()
-    +String getTitle()
-    +String getAuthor()
-    +int getYear()
-    +String getSynopsis()
-    +boolean isFavorite()
-    +void setFavorite(boolean favorite)
-    +String getImageUri()
-    +void setImageUri(String imageUri)
+    class ReviewActivity {
+        - ReviewViewModel reviewViewModel
+        - LinearLayout reviewsLayout
+        + onCreate(Bundle): void
+        - loadAllReviews(): void
+        - displayReviews(List<Review>): void
+        - loadNovelDetails(String): void
+        - showNovelDetails(Novel): void
+    }
+
+    class AddReviewActivity {
+        - EditText editTextReviewer
+        - EditText editTextComment
+        - EditText editTextRating
+        - Button buttonAddReview
+        - ReviewViewModel reviewViewModel
+        - String novelId
+        - String novelName
+        + onCreate(Bundle): void
+        - addReview(): void
+    }
+
+    class FavoritesActivity {
+        - FavoritesViewModel favoritesViewModel
+        - LinearLayout favoritesLayout
+        + onCreate(Bundle): void
+        - displayFavoriteNovels(List<Novel>): void
+    }
+
+    class AddEditNovelActivity {
+        - EditText editTextTitle
+        - EditText editTextAuthor
+        - EditText editTextYear
+        - EditText editTextSynopsis
+        - ImageView imageViewCover
+        - Uri selectedImageUri
+        - FirebaseFirestore db
+        - String novelId
+        + onCreate(Bundle): void
+        - openGallery(): void
+        - saveNovel(): void
+        - loadNovelDetails(int): void
+    }
+
+    class ReviewViewModel {
+        - FirebaseFirestore db
+        - MutableLiveData<List<Review>> reviewsLiveData
+        + getAllReviews(): LiveData<List<Review>>
+        + getNovelById(String): LiveData<Novel>
+        + addReview(Review): void
+    }
+
+    class NovelViewModel {
+        - MutableLiveData<List<Novel>> novelListLiveData
+        - FirebaseFirestore db
+        + getAllNovels(): LiveData<List<Novel>>
+        + getFavoriteNovels(): LiveData<List<Novel>>
+        - loadNovels(): void
+    }
+
+    class FavoritesViewModel {
+        - FirebaseFirestore db
+        - MutableLiveData<List<Novel>> favoriteNovelsLiveData
+        + getFavoriteNovels(): LiveData<List<Novel>>
+        - loadFavoriteNovels(): void
+    }
+
+    class Novel {
+        - String id
+        - String title
+        - String author
+        - int year
+        - String synopsis
+        - String imageUri
+        - boolean favorite
+        + getId(): String
+        + setId(String): void
+        + getTitle(): String
+        + getAuthor(): String
+        + getYear(): int
+        + getSynopsis(): String
+        + getImageUri(): String
+        + isFavorite(): boolean
+        + setFavorite(boolean): void
+    }
+
+    class Review {
+        - String id
+        - String novelId
+        - String reviewer
+        - String comment
+        - int rating
+        - String novelName
+        + getId(): String
+        + setId(String): void
+        + getNovelId(): String
+        + setNovelId(String): void
+        + getReviewer(): String
+        + setReviewer(String): void
+        + getComment(): String
+        + setComment(String): void
+        + getRating(): int
+        + setRating(int): void
+        + getNovelName(): String
+        + setNovelName(String): void
+    }
+
+    PantallaPrincipalActivity --> AddEditNovelActivity
+    PantallaPrincipalActivity --> FavoritesActivity
+    PantallaPrincipalActivity --> ReviewActivity
+    ReviewActivity --> ReviewViewModel
+    AddReviewActivity --> ReviewViewModel
+    FavoritesActivity --> FavoritesViewModel
+    AddEditNovelActivity --> Novel
+    ReviewViewModel --> Review
+    ReviewViewModel --> Novel
+    NovelViewModel --> Novel
+    FavoritesViewModel --> Novel
 }
-
-class Review {
-    +int id
-    +int novelId
-    +String reviewer
-    +String comment
-    +int rating
-    +void setId(int id)
-    +int getId()
-    +int getNovelId()
-    +String getReviewer()
-    +String getComment()
-    +int getRating()
-}
-
-class NovelDao {
-    +void insert(Novel novel)
-    +void update(Novel novel)
-    +void delete(Novel novel)
-    +LiveData<List<Novel>> getAllNovels()
-    +LiveData<Novel> getNovelById(int novelId)
-    +void addReview(Review review)
-    +LiveData<List<Review>> getReviewsForNovel(int novelId)
-    +LiveData<List<Novel>> getFavoriteNovels()
-}
-
-class NovelDataBase {
-    -static NovelDataBase instance
-    +NovelDao novelDao()
-    +static synchronized NovelDataBase getInstance(Context context)
-}
-
-class NovelRepository {
-    -NovelDao novelDao
-    -LiveData<List<Novel>> allNovels
-    -LiveData<List<Novel>> favoriteNovels
-    -ExecutorService executorService
-    +NovelRepository(Application application)
-    +void insert(Novel novel)
-    +void update(Novel novel)
-    +void delete(Novel novel)
-    +LiveData<List<Novel>> getFavoriteNovels()
-    +LiveData<List<Novel>> getAllNovels()
-    +LiveData<Novel> getNovelById(int novelId)
-    +void addReview(Review review)
-    +LiveData<List<Review>> getReviewsForNovel(int novelId)
-}
-
-class NovelViewModel {
-    -NovelRepository repository
-    -LiveData<List<Novel>> allNovels
-    -LiveData<List<Novel>> favoriteNovels
-    +NovelViewModel(Application application)
-    +LiveData<List<Novel>> getAllNovels()
-    +LiveData<List<Novel>> getFavoriteNovels()
-    +void insert(Novel novel)
-    +void update(Novel novel)
-    +void delete(Novel novel)
-}
-
-class AddEditNovelViewModel {
-    -NovelRepository repository
-    -LiveData<Novel> novel
-    -LiveData<List<Review>> reviews
-    +AddEditNovelViewModel(Application application)
-    +LiveData<Novel> getNovelById(int novelId)
-    +LiveData<Novel> getNovel()
-    +LiveData<List<Review>> getReviews()
-    +void saveNovel(Novel novel)
-}
-
-class ReviewViewModel {
-    -NovelRepository repository
-    +ReviewViewModel(Application application)
-    +LiveData<List<Review>> getReviewsForNovel(int novelId)
-    +void addReview(Review review)
-}
-
-class MainActivity {
-    -RecyclerView recyclerView
-    -NovelViewModel novelViewModel
-    -NovelAdapter novelAdapter
-    +void onCreate(Bundle savedInstanceState)
-    +void showPopupMenu(View view)
-}
-
-class AddEditNovelActivity {
-    -EditText editTextTitle
-    -EditText editTextAuthor
-    -EditText editTextYear
-    -EditText editTextSynopsis
-    -ImageView imageViewCover
-    -AddEditNovelViewModel novelViewModel
-    -Uri selectedImageUri
-    +void onCreate(Bundle savedInstanceState)
-    +void openGallery()
-    +void saveNovel()
-}
-
-class ReviewActivity {
-    -ReviewViewModel reviewViewModel
-    -ReviewAdapter reviewAdapter
-    -EditText editTextReviewer
-    -EditText editTextComment
-    -EditText editTextRating
-    -int novelId
-    +void onCreate(Bundle savedInstanceState)
-    +void addReview()
-}
-
-class FavoritesActivity {
-    -FavoritesAdapter favoritesAdapter
-    +void onCreate(Bundle savedInstanceState)
-}
-
-class NovelAdapter {
-    -List<Novel> novels
-    -OnItemClickListener listener
-    +NovelHolder onCreateViewHolder(ViewGroup parent, int viewType)
-    +void onBindViewHolder(NovelHolder holder, int position)
-    +int getItemCount()
-    +void setNovels(List<Novel> novels)
-    +void setOnItemClickListener(OnItemClickListener listener)
-}
-
-class FavoritesAdapter {
-    -List<Novel> novels
-    +NovelHolder onCreateViewHolder(ViewGroup parent, int viewType)
-    +void onBindViewHolder(NovelHolder holder, int position)
-    +int getItemCount()
-    +void setNovels(List<Novel> novels)
-}
-
-class ReviewAdapter {
-    -List<Review> reviews
-    +ReviewHolder onCreateViewHolder(ViewGroup parent, int viewType)
-    +void onBindViewHolder(ReviewHolder holder, int position)
-    +int getItemCount()
-    +void setReviews(List<Review> reviews)
-}
-
-Novel --> Review : "1..* has"
-NovelDao --> Novel : "CRUD for"
-NovelDao --> Review : "CRUD for"
-NovelDataBase --> NovelDao : "uses"
-NovelRepository --> NovelDao : "interacts with"
-NovelRepository --> Novel : "manages"
-NovelRepository --> Review : "manages"
-NovelViewModel --> NovelRepository : "uses"
-AddEditNovelViewModel --> NovelRepository : "uses"
-ReviewViewModel --> NovelRepository : "uses"
-MainActivity --> NovelViewModel : "uses"
-AddEditNovelActivity --> AddEditNovelViewModel : "uses"
-ReviewActivity --> ReviewViewModel : "uses"
-FavoritesActivity --> NovelViewModel : "uses"
-NovelAdapter --> Novel : "displays"
-FavoritesAdapter --> Novel : "displays"
-ReviewAdapter --> Review : "displays"
-MainActivity --> NovelAdapter : "uses"
-FavoritesActivity --> FavoritesAdapter : "uses"
-ReviewActivity --> ReviewAdapter : "uses"
-
 @enduml

@@ -1,17 +1,13 @@
 @startuml
-left to right direction
 actor Usuario
 
-usecase "Agregar Novela" as UC1
-usecase "Editar Novela" as UC2
-usecase "Eliminar Novela" as UC3
-usecase "Ver Lista de Novelas" as UC4
-usecase "Ver Detalles de una Novela" as UC5
-usecase "Marcar como Favorita" as UC6
-usecase "Ver Novelas Favoritas" as UC7
-usecase "Agregar Reseña" as UC8
-usecase "Ver Reseñas de una Novela" as UC9
-usecase "Administrar Imagen de Portada" as UC10
+usecase "Ver lista de novelas" as UC1
+usecase "Agregar/Editar novela" as UC2
+usecase "Marcar como favorita" as UC3
+usecase "Ver novelas favoritas" as UC4
+usecase "Ver reseñas de novelas" as UC5
+usecase "Agregar reseña" as UC6
+usecase "Ver detalles de la novela" as UC7
 
 Usuario --> UC1
 Usuario --> UC2
@@ -20,14 +16,9 @@ Usuario --> UC4
 Usuario --> UC5
 Usuario --> UC6
 Usuario --> UC7
-Usuario --> UC8
-Usuario --> UC9
-Usuario --> UC10
 
-UC1 .> UC4 : include
-UC2 .> UC4 : include
-UC3 .> UC4 : include
-UC5 .> UC9 : include
-UC2 .> UC10 : include
-
+UC1 .> UC2 : incluye
+UC1 .> UC3 : incluye
+UC4 .> UC3 : incluye
+UC5 .> UC7 : incluye
 @enduml
